@@ -27,3 +27,9 @@
 *.exe
 *.out
 *.app
+
+# Backup and temp files
+*.bak
+*~
+temp*
+
