@@ -8,7 +8,10 @@
 
 #include <stdio.h>
 #include <string.h> // for strdup(), ...
-// other includes
+#include <iostream>
+#include <string>
+#include <stdint.h>
+#include "Utf8Ucs2Converter.h"
 
 static const char *module = "main";
 
@@ -61,6 +64,14 @@ int parse_args( int argc, char **argv )
     return 0;
 }
 
+int process_in_file(const char *file) // actions of app
+{
+    int iret = 0;
+
+
+    return iret;
+}
+
 // main() OS entry
 int main( int argc, char **argv )
 {
@@ -72,7 +83,7 @@ int main( int argc, char **argv )
         return iret;
     }
 
-    // TODO: actions of app
+    iret = process_in_file(usr_input); // actions of app
 
     return iret;
 }

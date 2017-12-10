@@ -19,6 +19,7 @@
 #include <iostream>
 #include <string>
 #include <stdint.h>
+#include "Utf8Ucs2Converter.h"
 
 bool utf8CharToUcs2Char(const char* utf8Tok, wchar_t* ucs2Char, uint32_t* utf8TokLen)
 {
