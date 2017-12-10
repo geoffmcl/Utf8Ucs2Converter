@@ -70,7 +70,7 @@ bool utf8CharToUcs2Char(const char* utf8Tok, wchar_t* ucs2Char, uint32_t* utf8To
         *utf8TokLen = 4;
         return false;                        //Character exceeds the UCS-2 range (UCS-4 would be necessary)
     }
-    else if ((0xF8 == utf8TokUs[0] & 0xFC))
+    else if (0xF8 == (utf8TokUs[0] & 0xFC))
     {
         //Tokensize: 5 bytes
         *utf8TokLen = 5;
@@ -159,6 +159,7 @@ std::string ucs2ToUtf8(const std::wstring& ucs2Str)
     return utf8Result;
 }
 
+#ifdef ADD_TEST
 int main()
 {
     const unsigned char utf8SampleChars[] = { 0x41, 0xf0, 0xa0, 0x9c, 0x8e, 0xce, 0x94, 0x31, 0x0 };
@@ -175,3 +176,5 @@ int main()
     std::cout << "UTF-8 Backconv: " << utf8ConvStr << std::endl;
 
 }
+#endif // #ifdef ADD_TEST
+/* eof */

@@ -78,6 +78,8 @@ set(name Utf8Ucs2Converter)
 set(dir src)
 set(${name}_SRCS
     ${dir}/Utf8Ucs2Converter.cpp
+    ${dir}/Utf8Ucs2Converter.h
+    ${dir}/main.cpp
     )
 add_executable( ${name} ${${name}_SRCS} )
 if (add_LIBS)
