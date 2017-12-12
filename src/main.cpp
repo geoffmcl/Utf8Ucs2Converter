@@ -17,15 +17,6 @@
 #include <stdint.h>
 #include "Utf8Ucs2Converter.h"
 
-/* from : https://stackoverflow.com/questions/5047971/how-do-i-check-for-c11-support */
-#if defined(_MSC_VER)
-#   if _MSC_VER < 1800 
-#       error This project needs atleast Visual Studio 2013
-#   endif
-#elif __cplusplus <= 199711L
-#   error This project can only be compiled with a compiler that supports C++11
-#endif
-
 static const char *module = "main";
 
 static const char *usr_input = 0;
