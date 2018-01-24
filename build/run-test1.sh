@@ -25,7 +25,7 @@ if [ -f "$TMPTXT4" ]; then
     rm -f "$TMPTXT4"
 fi
 
-echo "$BN:Wriiting: '$TMPTXT1'"
+echo "$BN:Writting: '$TMPTXT1'"
 echo "Line 1" > $TMPTXT1
 echo "Line 2" >> $TMPTXT1
 echo "Line 3" >> $TMPTXT1
