@@ -17,14 +17,19 @@
 @if ERRORLEVEL 2 goto NOFC4
 @if ERRORLEVEL 1 goto CHKUPD
 @echo.
-@echo Appears 
-@echo src %TMPSRC% and 
-@echo dst %TMPDST% are the *** SAME ***
+@echo Appears src %TMPSRC%
+@call dirmin %TMPSRC%
+@echo and    dst %TMPDST% 
+@call dirmin %TMPDST%
+@echo are the *** SAME ***
 @echo *** NO update required ***
 @echo.
 @goto END
 :CHKUPD
-@echo Appears src %TMPSRC% and dst %TMPDST% different
+@echo Appears src %TMPSRC%
+@call dirmin %TMPSRC%
+@echo and dst %TMPDST% different
+@call dirmin %TMPDST%
 @echo Continue with UPDATE?
 @pause
 @echo Doing update...
