@@ -204,17 +204,20 @@ int process_in_file_UCS2(const char *file) // actions of app
     }
     printf("%s: Writting output file '%s' as UTF-8...\n", module, out_file);
     while (std::getline(ifs, str)) {
+        len = str.length();
         //rtrim(str); // FAILED
         trim_wCR(str);  /* seems to work... */
         len = str.length();
         if (lines == 0) {
             /* check and remove utf-16 BOM from wstring */
-            char c1 = (char)str[0];
-            char c2 = 0;
+            unsigned char c1 = (unsigned char)str[0];
+            unsigned char c2 = 0;
             if (len > 1)
-                c2 = (char)str[1];
+                c2 = (unsigned char)str[1];
             /* is it the BOM */
-            if (((c1 & 0xff) == 0xfe) && ((c2 & 0xff) == 0xff)) {
+            if (((c1 == 0xff) && (c2 == 0xfe)) || 
+                ((c1 == 0xfe) && (c2 == 0xff))) {
+                //if (((c1 & 0xff) == 0xfe) && ((c2 & 0xff) == 0xff)) {
                 if (len >= 2) {
                     str2 = str.substr(2);
                     len = str2.length();
@@ -226,7 +229,6 @@ int process_in_file_UCS2(const char *file) // actions of app
                     continue;
                 }
             }
-
         }
         lines++;
         std::string s = ucs2ToUtf8(str);
