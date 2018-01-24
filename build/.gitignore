@@ -12,4 +12,6 @@ x64/*
 .vs/*
 *.VC.db
 *.VC.opendb
+Makefile
+Utf8Ucs2Converter
 
