@@ -12,11 +12,6 @@ set( Utf8Ucs2_fork_MAJOR 3 )
 set( Utf8Ucs2_fork_MINOR 0 )
 set( Utf8Ucs2_fork_POINT 0 )
 
-# Allow developer to select is Dynamic or static library built
-set( LIB_TYPE STATIC )  # set default static
-option( BUILD_SHARED_LIB "Set ON to build shared Library (DLL)" OFF )
-
-
 if(CMAKE_COMPILER_IS_GNUCXX)
     set( WARNING_FLAGS -Wall )
 endif(CMAKE_COMPILER_IS_GNUCXX)
@@ -27,11 +22,11 @@ endif()
 
 if(WIN32 AND MSVC)
     # turn off various warnings - none needed in this compile
-    set(WARNING_FLAGS "${WARNING_FLAGS} /wd4996")
+    # set(WARNING_FLAGS "${WARNING_FLAGS} /wd4996")
     # foreach(warning 4244 4251 4267 4275 4290 4786 4305)
     #     set(WARNING_FLAGS "${WARNING_FLAGS} /wd${warning}")
     # endforeach(warning)
-    set( MSVC_FLAGS "-DNOMINMAX -D_USE_MATH_DEFINES -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS -D__CRT_NONSTDC_NO_WARNINGS" )
+    # set( MSVC_FLAGS "-DNOMINMAX -D_USE_MATH_DEFINES -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS -D__CRT_NONSTDC_NO_WARNINGS" )
     # if (${MSVC_VERSION} EQUAL 1600)
     #    set( MSVC_LD_FLAGS "/FORCE:MULTIPLE" )
     # endif (${MSVC_VERSION} EQUAL 1600)
@@ -51,12 +46,31 @@ set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${MSVC_LD_FLAGS}" )
 # add_definitions( -DHAVE_CONFIG_H )
 # include_directories( ${CMAKE_BINARY_DIR} )
 
-if(BUILD_SHARED_LIB)
-   set(LIB_TYPE SHARED)
-   message(STATUS "*** Building DLL library ${LIB_TYPE}")
-else()
-   message(STATUS "*** Option BUILD_SHARED_LIB is OFF ${LIB_TYPE}")
-endif()
+#------------------------------------------------------------------------
+# Static Windows Runtime
+#   Option to statically link to the Windows runtime. Maybe only 
+#   applies to WIN32/MSVC.
+#------------------------------------------------------------------------
+if (MSVC)
+    option( USE_STATIC_RUNTIME "Set ON to change /MD(DLL) to /MT(static)" OFF )
+    if (USE_STATIC_RUNTIME)
+        set(CompilerFlags
+            CMAKE_CXX_FLAGS
+            CMAKE_CXX_FLAGS_DEBUG
+            CMAKE_CXX_FLAGS_RELEASE
+            CMAKE_C_FLAGS
+            CMAKE_C_FLAGS_DEBUG
+            CMAKE_C_FLAGS_RELEASE
+            )
+        foreach(CompilerFlag ${CompilerFlags})
+            string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
+        endforeach()    
+        message(STATUS "Using /MT STATIC runtime")
+    else ()
+        message(STATUS "Using /MD DYNAMIC runtime")
+    endif ()
+endif ()
+
 # Total libs 0, exes 1
 #################################################
 ##### LIBRARIES 0 #####
