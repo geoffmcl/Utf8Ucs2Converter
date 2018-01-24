@@ -9,7 +9,9 @@
 #include <iostream>
 #include <locale>
 #include <string>
+#ifdef WIN32
 #include <codecvt>
+#endif
 #include <fstream>
 #include <stdio.h>
 #include <string.h> // for strdup(), ...
@@ -126,8 +128,10 @@ int process_in_file_UTF8(const char *file) // actions of app
     printf("%s: Reading input file '%s'...\n", module, file);
     //std::wofstream fs(out_file, std::ios::binary);
     std::wofstream fs;
+#ifdef WIN32
     std::locale loc(std::locale(), new std::codecvt_utf16<wchar_t>);
     fs.imbue(loc);
+#endif
     fs.open(out_file, std::ios::trunc | std::ios::binary);
     //fs.open(out_file, std::ios::trunc | std::ios::out);
     if (!fs) {
