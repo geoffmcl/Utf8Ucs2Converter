@@ -34,7 +34,9 @@ if(WIN32 AND MSVC)
     # to distinguish between debug and release libs
     set( CMAKE_DEBUG_POSTFIX "d" )
 else()
-    # items for unix
+    # items for unix - --std=c++11
+    set(WARNING_FLAGS "${WARNING_FLAGS} --std=c++11")
+    
 endif()
 
 set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${WARNING_FLAGS} ${MSVC_FLAGS} -D_REENTRANT" )
@@ -105,6 +107,8 @@ endif ()
 # deal with install, if any...
 #install( TARGETS ${name} DESTINATION bin )
 
+if (WIN32)
+# unable to get this built in unix!!!!!!!!!
 set(name test1)
 set(dir src)
 set(${name}_SRCS
@@ -119,5 +123,6 @@ if (MSVC)
 endif ()
 # deal with install, if any...
 #install( TARGETS ${name} DESTINATION bin )
+endif ()
 
 # eof

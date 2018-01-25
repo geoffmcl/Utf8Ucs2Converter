@@ -13,10 +13,19 @@
 #include <iostream>
 #include <string>
 #include <locale>
+#ifdef WIN32
 #include <codecvt>
+#else
+#include <endian.h>
+#ifndef little_endian
+#define little_endian __LITTLE_ENDIAN
+#endif
+#endif
 // other includes
 
-static const char *module = "test1";
+using namespace std;
+
+// static const char *module = "test1";
 
 static const char* test = "temptest.txt";
 
@@ -39,7 +48,7 @@ int main()
     std::wifstream fin(test, std::ios::binary);
     // apply facet
     fin.imbue(std::locale(fin.getloc(),
-       new std::codecvt_utf16<wchar_t, 0x10ffff, std::little_endian>));
+       new codecvt_utf16<wchar_t, 0x10ffff, little_endian>));
  
     for (wchar_t c; fin.get(c); )
             std::cout << std::showbase << std::hex << c << '\n';
