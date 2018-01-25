@@ -22,7 +22,7 @@ endif()
 
 if(WIN32 AND MSVC)
     # turn off various warnings - none needed in this compile
-    # set(WARNING_FLAGS "${WARNING_FLAGS} /wd4996")
+    set(WARNING_FLAGS "${WARNING_FLAGS} /wd4996")
     # foreach(warning 4244 4251 4267 4275 4290 4786 4305)
     #     set(WARNING_FLAGS "${WARNING_FLAGS} /wd${warning}")
     # endforeach(warning)
