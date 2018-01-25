@@ -11,6 +11,8 @@
 #include <string>
 #ifdef WIN32
 #include <codecvt>
+#else
+#include <endian.h>
 #endif
 #include <fstream>
 #include <stdio.h>
@@ -211,6 +213,9 @@ int process_in_file_UTF8(const char *file) // actions of app
 #ifdef WIN32
     std::locale loc(std::locale(), new codecvt_utf16<wchar_t>);
     fs.imbue(loc);
+#else
+    //fs.imbue(locale(fs.getloc(), new codecvt_utf16<wchar_t, 0x10ffff, little_endian>()));
+    //fs.imbue(locale(fs.getloc(), new codecvt_utf16<wchar_t>()));
 #endif
     fs.open(out_file, std::ios::trunc | std::ios::binary);
     //fs.open(out_file, std::ios::trunc | std::ios::out);
