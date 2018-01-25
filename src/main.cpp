@@ -21,11 +21,20 @@
 #include <stdint.h>
 #include "Utf8Ucs2Converter.h"
 
+using namespace std;
+
 static const char *module = "main";
 
 static const char *usr_input = 0;
 static const char *out_file = "tempout.txt";
-static int reverse = 0;
+static int do_reverse = 0;
+static int verbosity = 1;
+
+#define VERB1 (verbosity >= 1)
+#define VERB2 (verbosity >= 2)
+#define VERB5 (verbosity >= 5)
+#define VERB9 (verbosity >= 9)
+
 void give_help( char *name )
 {
     printf("%s: usage: [options] usr_input\n", module);
@@ -33,6 +42,7 @@ void give_help( char *name )
     printf(" --help  (-h or -?) = This help and exit(0)\n");
     printf(" --out <file>  (-o) = Set output file. (def=%s)\n", out_file);
     printf(" --reverse     (-r) = Read in unicode, and output utf-8\n");
+    printf(" --verb[n]     (-v) = Bump or set verbosity. (def=%d)\n", verbosity);
     printf("\n");
     printf(" Read user input file as utf-8, and output UCS-2 to output file.\n");
     printf(" And vice versa if '--reverse', (-r), given...\n");
@@ -69,9 +79,25 @@ int parse_args( int argc, char **argv )
                 }
                 break;
             case 'r':
-                reverse = 1;
+                do_reverse = 1;
                 break;
-            // TODO: Other arguments
+            case 'v':
+                verbosity++;
+                sarg++;
+                while (*sarg) {
+                    c = *sarg;
+                    if (c == 'v') {
+                        verbosity++;
+                    }
+                    else if ((c >= '0') && (c <= '9')) {
+                        verbosity = atoi(sarg);
+                        break;
+                    }
+                    sarg++;
+                }
+                if (VERB2)
+                    printf("%s: Verbosity set to %d\n", module, verbosity);
+                break;
             default:
                 printf("%s: Unknown argument '%s'. Try -? for help...\n", module, arg);
                 return 1;
@@ -113,11 +139,64 @@ int add_BOM_utf8(std::ofstream &fs)
 }
 #endif // 0000000000000000000000000000000000000000
 
+//////////////////////////////////////////////////////////
+// Utils
+#ifndef EndBuf
+#define EndBuf(a) (a + strlen(a))
+#endif
+
+void print_hex(const unsigned char *in_cp, int in_len)
+{
+    char hex_buffer[256];
+    int i, c, off, max, len = in_len;
+    const unsigned char *cp = in_cp;
+    char *pb = hex_buffer;
+    off = 0;
+    while (len) {
+        max = (len > 16) ? 16 : len;
+        *pb = 0;
+        for (i = 0; i < max; i++) {
+            c = (cp[off + i] & 0xff);
+            sprintf(EndBuf(pb), "%02X ", c);
+        }
+        while (i < 16) {
+            strcat(pb, "   ");
+            i++;
+        }
+        strcat(pb, " ");
+        for (i = 0; i < max; i++) {
+            c = (cp[off + i] & 0xff);
+            if ((c >= ' ') && (c < 0x7f)) {
+                sprintf(EndBuf(pb), "%c", (char)c);
+            }
+            else {
+                strcat(pb, ".");
+            }
+        }
+
+        printf("%s\n", pb);
+        len -= max;
+        off += max;
+    }
+}
+
+void print_hex_line(const unsigned char *cp, int len, int line)
+{
+    char buf[256];
+    sprintf(buf, "Line %d, len %d, in hex...", line, len);
+    printf("%s\n", buf);
+    print_hex(cp, len);
+}
+
+
+
+/////////////////////////////////////////////////////////
+
 int process_in_file_UTF8(const char *file) // actions of app
 {
     int iret = 0;
     int lines = 0;
-    size_t in_len = 0;
+    size_t len, in_len = 0;
     size_t out_len = 0;
     std::string str;
     std::ifstream inf(file);
@@ -125,11 +204,12 @@ int process_in_file_UTF8(const char *file) // actions of app
         std::cerr << "Error: FAILED to open '" << file << "'" << std::endl;
         return 1;
     }
-    printf("%s: Reading input file '%s'...\n", module, file);
+    if (VERB1)
+        printf("%s: Reading input file '%s'...\n", module, file);
     //std::wofstream fs(out_file, std::ios::binary);
     std::wofstream fs;
 #ifdef WIN32
-    std::locale loc(std::locale(), new std::codecvt_utf16<wchar_t>);
+    std::locale loc(std::locale(), new codecvt_utf16<wchar_t>);
     fs.imbue(loc);
 #endif
     fs.open(out_file, std::ios::trunc | std::ios::binary);
@@ -139,13 +219,18 @@ int process_in_file_UTF8(const char *file) // actions of app
         inf.close();
         return 1;
     }
-    printf("%s: Writting output file '%s' as UTF-16 (UCS-2)... (wcs=%u)\n", module, out_file, (int)sizeof(wchar_t));
+    if (VERB1)
+        printf("%s: Writing output file '%s' as UTF-16 (UCS-2)... (wcs=%u)\n", module, out_file, (int)sizeof(wchar_t));
+
     //add_BOM_utf16(fs);
     fs << (wchar_t)0xfeff; // UTS-16 BOM
     out_len += 2;
     while (std::getline(inf, str)) {
         lines++;
-        in_len += str.length();
+        len = str.length();
+        if (VERB5)
+            print_hex_line((const unsigned char *)str.c_str(), (int)len, lines);
+        in_len += len;
         std::wstring ws = utf8ToUcs2(str);
         //out_len += (ws.size() * sizeof(wchar_t));
         out_len += (ws.length() * 2);
@@ -158,7 +243,9 @@ int process_in_file_UTF8(const char *file) // actions of app
         fs << (wchar_t)0x0a;
         out_len += 2;
     }
-    printf("%s: Read, converted and wrote %u lines, %u bytes... (%u)\n", module, lines, (int)out_len, (int)fs.tellp());
+    if (VERB1)
+        printf("%s: Read, converted and wrote %u lines, %u bytes... (%u)\n", module, lines, (int)out_len, (int)fs.tellp());
+
     fs.close();
     inf.close();
     return iret;
@@ -197,7 +284,8 @@ int process_in_file_UCS2(const char *file) // actions of app
         std::cerr << "Error: FAILED to open '" << file << "'" << std::endl;
         return 1;
     }
-    printf("%s: Reading input file '%s'... as UCS-2...\n", module, file);
+    if (VERB1)
+        printf("%s: Reading input file '%s'... as UCS-2...\n", module, file);
     std::ofstream ofs;
     /* creat output file */
     ofs.open(out_file, std::ios::trunc);
@@ -206,9 +294,12 @@ int process_in_file_UCS2(const char *file) // actions of app
         ifs.close();
         return 1;
     }
-    printf("%s: Writting output file '%s' as UTF-8...\n", module, out_file);
+    if (VERB1)
+        printf("%s: Writing output file '%s' as UTF-8...\n", module, out_file);
     while (std::getline(ifs, str)) {
         len = str.length();
+        if (VERB5)
+            print_hex_line((const unsigned char *)str.c_str(), (int)(len * 2), lines + 1);
         //rtrim(str); // FAILED
         trim_wCR(str);  /* seems to work... */
         len = str.length();
@@ -225,16 +316,11 @@ int process_in_file_UCS2(const char *file) // actions of app
                 if (len >= 2) {
                     str2 = str.substr(2);
                     len = str2.length();
-                    if (len == 0)
-                        continue;
-                    str = str2; // copy the balance
-                }
-                else {
-                    continue;
+                    str = str2; // copy the balance, if any
                 }
             }
         }
-        lines++;
+        lines++;    // done a line
         std::string s = ucs2ToUtf8(str);
         out_len += s.length();
         ofs << s;
@@ -246,7 +332,8 @@ int process_in_file_UCS2(const char *file) // actions of app
 #endif
     }
 
-    printf("%s: Read, converted and wrote %u lines, %u bytes... (%u)\n", module, lines, (int)out_len, (int)ofs.tellp());
+    if (VERB1)
+        printf("%s: Read, converted and wrote %u lines, %u bytes... (%u)\n", module, lines, (int)out_len, (int)ofs.tellp());
     ifs.close();
     ofs.close();
     return iret;
@@ -263,13 +350,12 @@ int main( int argc, char **argv )
             iret = 0;
         return iret;
     }
-    if (reverse)
+    if (do_reverse)
         iret = process_in_file_UCS2(usr_input); // actions of app
     else
         iret = process_in_file_UTF8(usr_input); // actions of app
 
     return iret;
 }
-
 
 // eof = main.cpp
